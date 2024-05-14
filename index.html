@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Ethereum Transactions: Standard vs ZKP Batched</title>
+   <style>
+:root {
+    --label-y-coordinate: -40px; /* Adjust this value as needed */
+    --ethereum-purple: #CFC3FB;
+    --ethereum-blue: #87A9EF;
+    --ethereum-teal: #B8FBF7;
+    --dark-purple: #8e7dff;
+    --light-gold: #FFD700;
+    --dark-gold: #D4AF37;
+}
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 50px 0 0 0;
+    background-color: #000000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--ethereum-teal);
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--ethereum-purple);
+    text-align: center;
+    margin-top: 50px;
+    top: 1px;
+    position: absolute;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(207, 195, 251, 0.8);
+}
+
+.transaction-container {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #000000;
+    border-radius: 20px;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.1), 0 0 80px rgba(255, 215, 0, 0.05);
+    padding: 60px 30px;
+    margin-top: 120px;
+    position: relative;
+    perspective: 1000px;
+    z-index: 1;
+}
+
+.transaction-flow {
+    display: flex;
+    align-items: center;
+    margin-bottom: 100px;
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+.transaction-flow:first-child {
+    margin-left: -430px;
+}
+
+.transaction-flow:last-child {
+    margin-top: -30px;
+}
+
+.transaction-symbol,
+.zkp-transaction-symbol {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 15px;
+    background-color: var(--dark-purple);
+    border-radius: 50%;
+    position: relative;
+    transition: transform 0.3s ease;
+    transform-style: preserve-3d;
+    box-shadow: 0 6px 10px rgba(255, 215, 0, 0.1), 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.zkp-transaction-symbol {
+    background-color: var(--light-gold);
+}
+
+.transaction-symbol:hover,
+.zkp-transaction-symbol:hover {
+    transform: translateZ(30px) scale(1.1);
+    box-shadow: 0 12px 20px rgba(255, 215, 0, 0.2), 0 0 40px rgba(255, 215, 0, 0.4);
+}
+
+.transaction-symbol img,
+.zkp-transaction-symbol img {
+    width: 60%;
+    height: 60%;
+    object-fit: contain;
+    opacity: 1;
+    filter: brightness(1.2) drop-shadow(0 0 5px rgba(255, 215, 0, 0.8));
+    transition: transform 0.3s ease;
+}
+
+.transaction-symbol:hover img,
+.zkp-transaction-symbol:hover img {
+    transform: scale(1.1);
+}
+
+.transaction-arrow,
+.zkp-transaction-arrow {
+    width: 60px;
+    height: 4px;
+    margin: 0 20px;
+    position: relative;
+    background-color: var(--ethereum-teal);
+    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.zkp-transaction-arrow {
+    background-color: var(--light-gold);
+}
+
+.transaction-arrow::after,
+.zkp-transaction-arrow::after {
+    content: "";
+    position: absolute;
+    right: -8px;
+    top: -6px;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-left: 8px solid var(--ethereum-teal);
+}
+
+.zkp-transaction-arrow::after {
+    border-left-color: var(--light-gold);
+}
+
+.transaction-flow:first-child .transaction-symbol:nth-child(n+2),
+.transaction-flow:first-child .zkp-transaction-arrow {
+    margin-right: 60px;
+}
+.transaction-flow:first-child .transaction-arrow:nth-child(3),
+.transaction-flow:first-child .transaction-arrow:nth-child(5) {
+    transform: translateX(-20px); /* Adjust this value to move the arrows to the left */
+}
+.batch-transaction-outline {
+    position: absolute;
+    top: -20px;
+    left: -30px;
+    right: 40px;
+    bottom: -20px;
+    border: 4px dashed var(--light-gold);
+    pointer-events: none;
+    box-sizing: border-box;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.1), 0 0 40px rgba(255, 215, 0, 0.05);
+    animation: pulseBorder 2s infinite;
+    border-radius: 30px;
+}
+
+@keyframes pulseBorder {
+    0% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.1), 0 0 40px rgba(255, 215, 0, 0.05);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.2), 0 0 50px rgba(255, 215, 0, 0.1);
+    }
+    100% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.1), 0 0 40px rgba(255, 215, 0, 0.05);
+    }
+}
+
+.transaction-flow:first-child .zkp-transaction-arrow {
+    background-color: transparent;
+    background-image: linear-gradient(to right, var(--light-gold) 50%, transparent 50%);
+    background-size: 20px 4px;
+    background-repeat: repeat-x;
+    animation: dashedArrowZKP 1s linear infinite;
+}
+
+@keyframes dashedArrowZKP {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 20px 0;
+    }
+}
+
+.transaction-pool {
+    width: 200px;
+    height: 160px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 20px;
+    position: relative;
+    transform-style: preserve-3d;
+    top: 1px;
+    overflow: visible;
+    background: linear-gradient(135deg, var(--ethereum-blue), var(--ethereum-teal));
+    border-radius: 20px;
+    box-shadow: 0 6px 10px rgba(255, 215, 0, 0.1), 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.transaction-pool:hover {
+    transform: translateZ(30px) rotateX(20deg);
+    box-shadow: 0 12px 20px rgba(255, 215, 0, 0.2), 0 0 40px rgba(255, 215, 0, 0.4);
+}
+
+.transaction {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--ethereum-teal);
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    opacity: 0.8;
+    animation: floatTransaction 2s ease-in-out infinite;
+    transform-style: preserve-3d;
+    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.1);
+}
+
+.green-transaction {
+    width: 10px;
+    height: 10px;
+    z-index: 1;
+    opacity: 0.9;
+    background-color: #FFD700 !important; /* Bright purple color */
+    animation-delay: -1s;
+}
+
+@keyframes floatTransaction {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.transaction-flow:last-child .transaction-arrow:nth-child(7),
+.transaction-flow:last-child .transaction-arrow:nth-child(9),
+.transaction-flow:last-child .transaction-arrow:nth-child(11) {
+    width: 100px;
+}
+
+/* Remove gold glow from bottom row symbols */
+.transaction-flow:nth-child(2) .transaction-symbol {
+    background-color: var(--dark-purple);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-flow:nth-child(2) .transaction-symbol:hover {
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.transaction-flow:nth-child(2) .transaction-symbol img,
+.transaction-flow:nth-child(2) .transaction-symbol:hover img {
+    filter: brightness(1);
+    drop-shadow: none;
+}
+
+.slider-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 1200px;
+    z-index: 2;
+}
+
+.slider-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ethereum-purple);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(207, 195, 251, 0.8);
+}
+
+.slider-description {
+    font-size: 14px;
+    color: var(--ethereum-teal);
+    margin-bottom: 15px;
+    text-align: center;
+    width: 80%;
+}
+
+.slider-container input[type="range"] {
+    width: 360px;
+    margin: 0 20px;
+    -webkit-appearance: none;
+    background: linear-gradient(to right, var(--ethereum-purple), var(--ethereum-teal));
+    height: 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.1);
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    background: var(--dark-gold);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.slider-container input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    background: var(--dark-gold);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.slider-container input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.1);
+}
+
+.slider-formula {
+    font-size: 16px;
+    color: var(--ethereum-teal);
+    margin-top: 15px;
+}
+
+.flow-comparison {
+    display: flex;
+    justify-content: space-between;
+    width: 360px;
+    margin-top: 30px;
+}
+
+.eth-flow,
+.zk-flow {
+    font-size: 16px;
+    color: var(--ethereum-teal);
+}
+
+.disclaimer {
+    font-size: 12px;
+    color: var(--ethereum-teal);
+    margin-top: 30px;
+    text-align: center;
+    width: 80%;
+}
+
+.popup {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--dark-purple);
+    color: #ffffff;
+    padding: 10px;
+    border-radius: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    white-space: normal;
+    z-index: 1;
+    width: 250px;
+    text-align: center;
+    min-height: 60px;
+    box-shadow: 0 6px 10px rgba(255, 215, 0, 0.1);
+}
+
+.popup::before {
+    content: "";
+    position: absolute;
+    left: 47%;
+    transform: translateX(-50%);
+    transform: rotate(180deg);
+    bottom: -17.3px; 
+    border-width: 8px;
+    border-style: solid;
+    border-color: transparent transparent var(--dark-purple) transparent;
+}
+
+
+.transaction-flow:first-child .popup {
+    bottom: calc(100% + 10px);
+}
+
+.transaction-symbol:hover .popup,
+.zkp-transaction-symbol:hover .popup,
+.transaction-pool:hover .popup {
+    opacity: 1;
+    visibility: visible;
+}
+
+.label {
+    position: absolute;
+    bottom: var(--label-y-coordinate);
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px;
+    text-align: center;
+    white-space: nowrap;
+    color: var(--ethereum-teal);
+}
+
+.zkp-batched-transaction-text {
+    position: absolute;
+    top: 50%;
+    right: -380px;
+    transform: translateY(-50%);
+    font-size: 28px;
+    color: var(--light-gold);
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    animation: glowText 2s ease-in-out infinite;
+}
+
+@keyframes glowText {
+    0% {
+        text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    }
+    50% {
+        text-shadow: 0 0 25px rgba(255, 215, 0, 1);
+    }
+    100% {
+        text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    }
+}
+
+.dashed-arrow {
+    position: absolute;
+    width: 60px;
+    height:4px;
+background-color: transparent;
+background-image: linear-gradient(to right, var(--light-gold) 50%, transparent 50%);
+background-size: 20px 4px;
+background-repeat: repeat-x;
+animation: dashedArrowZKP 1s linear infinite;
+transform: rotate(70deg);
+top: calc(50% - 115px);
+left: calc(50% + 40px);
+transform-origin: top left;
+}
+.dashed-arrow::after {
+content: "";
+position: absolute;
+right: -8px;
+top: -6px;
+border-top: 8px solid transparent;
+border-bottom: 8px solid transparent;
+border-left: 8px solid var(--light-gold);
+}
+.bottom-row-popup {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--dark-purple);
+    color: #ffffff;
+    border-radius: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    white-space: normal;
+    z-index: 100;
+    width: auto;
+    max-width: 300px;
+    min-width: 200px;
+    padding: 10px;
+    box-shadow: 0 6px 10px rgba(255, 215, 0, 0.1);
+    text-align: center;
+}
+.bottom-row-popup::before {
+    content: "";
+    position: absolute;
+    top: -16px;  /* Adjust if needed to position arrow right above the popup */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 8px;  /* Adjust size of arrow */
+    border-style: solid;
+    border-color: transparent transparent var(--dark-purple) transparent;  /* Arrow pointing down with color matching the popup */
+}
+
+.transaction-symbol:hover .bottom-row-popup,
+.transaction-pool:hover .bottom-row-popup {
+    opacity: 1;
+    visibility: visible;
+}
+   </style>
+</head>
+<body>
+   <div class="page-title">Ethereum Transactions: Standard vs ZKP Batched</div>
+   <div class="transaction-container">
+       <div class="transaction-flow">
+           <div class="batch-transaction-outline"></div>
+           <div class="transaction-symbol">
+               <img src="user_group.svg" alt="Multiple Users" />
+               <div class="popup">Multiple users initiate transactions, providing data for the ZKP process.</div>
+               <div class="label">Users Initiate Txs</div>
+           </div>
+           <div class="transaction-arrow"></div>
+           <div class="transaction-symbol">
+               <img src="rollup.svg" alt="Rollup" />
+               <div class="popup">Transactions are bundled using rollups, optimizing data size and efficiency.</div>
+               <div class="label">Txs Bundled</div>
+           </div>
+           <div class="transaction-arrow"></div>
+           <div class="transaction-symbol">
+               <img src="shield2.svg" alt="Proof" />
+               <div class="popup">ZK proof is generated, enabling secure verification without revealing data.</div>
+               <div class="label">ZK Proof Generated</div>
+           </div>
+           <div class="zkp-batched-transaction-text">ZKP Batched Transaction</div>
+       </div>
+       <div class="transaction-flow">
+           <div class="transaction-symbol">
+               <img src="user2.svg" alt="User" />
+               <div class="bottom-row-popup">User creates a transaction to be sent to the Ethereum network.</div>
+               <div class="label">User Initates Tx</div>
+           </div>
+           <div class="transaction-arrow"></div>
+           <div class="transaction-symbol">
+               <img src="sign.svg" alt="Sign" />
+               <div class="bottom-row-popup">User digitally signs the transaction for authentication.</div>
+               <div class="label">User Signs Tx</div>
+           </div>
+           <div class="transaction-arrow"></div>
+           <div class="transaction-symbol">
+               <img src="globe.svg" alt="New Symbol" />
+               <div class="bottom-row-popup">Signed transaction is broadcasted to the Ethereum network.</div>
+               <div class="label">Tx Broadcasted</div>
+           </div>
+           <div class="transaction-arrow"></div>
+           <div class="transaction-pool" id="transaction-pool">
+               <div class="bottom-row-popup">Signed transactions wait in the mempool to be included in a block. High traffic leads to congestion.</div>
+               <div class="label">Mempool</div>
+           </div>
+           <div class="transaction-arrow"></div>
+           <div class="transaction-symbol">
+               <img src="block.svg" alt="Blockchain" />
+               <div class="bottom-row-popup">Transaction is added to a block and appended to the Ethereum blockchain.</div>
+               <div class="label">Tx Included in Block</div>
+           </div>
+           <div class="transaction-arrow"></div>
+           <div class="transaction-symbol">
+               <img src="ethereum.svg" alt="Ethereum" />
+               <div class="bottom-row-popup">Transaction is permanently recorded on the Ethereum blockchain.</div>
+               <div class="label">Tx Recorded on Chain</div>
+           </div>
+       </div>
+       <div class="dashed-arrow"></div>
+   </div>
+   <div class="slider-container">
+       <div class="slider-title">Economic Efficiency Simulator: ZKP Batched vs. Standard Transactions</div>
+       <div class="slider-description">Adjust the slider to simulate the efficiency of Zero-Knowledge Proofs (ZKP) batched transactions in comparison to standard Ethereum transactions in terms of throughput and network congestion.</div>
+       <input type="range" min="1" max="100" value="10" id="transaction-slider" />
+       <div class="slider-formula">Batch Efficiency Multiplier: <span id="congestion-factor"></span></div>
+       <div class="flow-comparison">
+           <div class="eth-flow">ETH Flow: <span id="eth-flow"></span></div>
+           <div class="zk-flow">ZK Flow: <span id="zk-flow"></span></div>
+       </div>
+       <div class="disclaimer">Note: The represented scales and numbers are for illustrative purposes to demonstrate the relative efficiency of ZKP batched transactions. Actual network conditions can vary based on multiple factors including block size, transaction complexity, and network load.</div>
+   </div>
+   <script>
+   const transactionSlider = document.getElementById('transaction-slider');
+const transactionPool = document.getElementById('transaction-pool');
+const congestionFactorElement = document.getElementById('congestion-factor');
+const ethFlowElement = document.getElementById('eth-flow');
+const zkFlowElement = document.getElementById('zk-flow');
+
+function updateTransactions(volume) {
+    const transactions = document.querySelectorAll('.transaction');
+    const zkpTTR = volume;
+    const congestionLevel = Math.min(1, zkpTTR / 100);
+    const opacityRange = 0.7;
+    const opacityBase = 0.3;
+    const opacity = opacityBase + congestionLevel * opacityRange;
+    transactions.forEach((transaction) => {
+        transaction.style.opacity = opacity;
+    });
+}
+
+transactionSlider.addEventListener('input', () => {
+    const volume = transactionSlider.value;
+    const numTransactions = Math.round(Math.pow(volume, 1.2));
+    generateTransactions(numTransactions);
+    updateTransactions(volume);
+    updateCongestionFactor(volume);
+    updateFlows(volume);
+});
+
+function generateTransactions(numTransactions) {
+    const poolWidth = transactionPool.offsetWidth;
+    const poolHeight = transactionPool.offsetHeight;
+
+    // Remove existing transactions
+    const existingTransactions = document.querySelectorAll('.transaction');
+    existingTransactions.forEach(transaction => transaction.remove());
+
+    for (let i = 0; i < numTransactions; i++) {
+        const transaction = document.createElement('div');
+        transaction.classList.add('transaction');
+        const x = Math.random() * (poolWidth - 20);
+        const y = Math.random() * (poolHeight - 20);
+        const delay = Math.random() * 2;
+        transaction.style.left = `${x}px`;
+        transaction.style.top = `${y}px`;
+        transaction.style.animationDelay = `${delay}s`;
+
+        if (i % 50 === 0) {
+            transaction.style.backgroundColor = '#CFC3FB';
+            transaction.classList.add('green-transaction');
+        }
+
+        transactionPool.appendChild(transaction);
+    }
+}
+
+function updateCongestionFactor(volume) {
+    const congestionFactor = volume;
+    congestionFactorElement.textContent = congestionFactor;
+}
+
+function updateFlows(volume) {
+    const ethTTR = 1;
+    const zkpTTR = 10 + (90 * volume) / 100; // ZKP efficiency ranges from 10x to 100x
+    const totalTTR = ethTTR + zkpTTR;
+    const ethTTRPercentage = ((ethTTR / totalTTR) * 100).toFixed(1);
+    const zkpTTRPercentage = ((zkpTTR / totalTTR) * 100).toFixed(1);
+    const zkpEfficiencyFactor = (zkpTTR / ethTTR).toFixed(2);
+    ethFlowElement.textContent = `ETH TTR: ${ethTTR} (${ethTTRPercentage}%)`;
+    zkFlowElement.textContent = `ZKP TTR: ${zkpTTR.toFixed(2)} (${zkpTTRPercentage}%) (${zkpEfficiencyFactor}x more efficient)`;
+}
+
+const initialVolume = transactionSlider.value;
+const numTransactions = Math.round(Math.pow(initialVolume, 1.5));
+generateTransactions(numTransactions);
+updateTransactions(initialVolume);
+updateCongestionFactor(initialVolume);
+updateFlows(initialVolume);
+</script>
+</body>
+</html>
