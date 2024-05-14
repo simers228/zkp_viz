@@ -195,25 +195,37 @@
        }
 
        .transaction-pool {
-           width: 200px;
-           height: 160px;
-           display: flex;
-           justify-content: center;
-           align-items: center;
-           margin-right: 20px;
-           position: relative;
-           transform-style: preserve-3d;
-           top: 1px;
-           overflow: visible;
-           background: linear-gradient(135deg, var(--ethereum-blue), var(--ethereum-teal));
-           border-radius: 20px;
-           box-shadow: 0 6px 10px rgba(255, 215, 0, 0.1), 0 0 20px rgba(255, 215, 0, 0.2);
-       }
+    width: 200px;
+    height: 160px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 20px;
+    position: relative;
+    transform-style: preserve-3d;
+    top: 1px;
+    overflow: visible;
+    background: linear-gradient(135deg, var(--ethereum-blue), var(--ethereum-teal));
+    border-radius: 20px;
+    box-shadow: 0 6px 10px rgba(255, 215, 0, 0.1), 0 0 20px rgba(255, 215, 0, 0.2);
+    z-index: 1; /* Add this line to ensure the mempool is on top */
+}
 
-       .transaction-pool:hover {
-           transform: translateZ(30px) rotateX(20deg);
-           box-shadow: 0 12px 20px rgba(255, 215, 0, 0.2), 0 0 40px rgba(255, 215, 0, 0.4);
-       }
+@media (max-width: 768px) {
+    .transaction-pool {
+        width: 150px;
+        height: 120px;
+        margin-right: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .transaction-pool {
+        width: 120px;
+        height: 100px;
+        margin-right: 5px;
+    }
+}
 
        .transaction {
            position: absolute;
