@@ -193,14 +193,22 @@
                background-position: 20px 0;
            }
        }
+       .transaction-pool-wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 20px;
+    perspective: 1000px; /* Add this line */
+}
 
-       .transaction-pool {
+.transaction-pool {
     width: 200px;
     height: 160px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-right: 20px;
     position: relative;
     transform-style: preserve-3d;
     top: 1px;
@@ -208,22 +216,33 @@
     background: linear-gradient(135deg, var(--ethereum-blue), var(--ethereum-teal));
     border-radius: 20px;
     box-shadow: 0 6px 10px rgba(255, 215, 0, 0.1), 0 0 20px rgba(255, 215, 0, 0.2);
-    z-index: 1; /* Add this line to ensure the mempool is on top */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Add this line */
+}
+
+.transaction-pool:hover {
+    transform: translateZ(30px) rotateX(20deg);
+    box-shadow: 0 12px 20px rgba(255, 215, 0, 0.2), 0 0 40px rgba(255, 215, 0, 0.4);
 }
 
 @media (max-width: 768px) {
+    .transaction-pool-wrapper {
+        margin-right: 10px;
+    }
+
     .transaction-pool {
         width: 150px;
         height: 120px;
-        margin-right: 10px;
     }
 }
 
 @media (max-width: 576px) {
+    .transaction-pool-wrapper {
+        margin-right: 5px;
+    }
+
     .transaction-pool {
         width: 120px;
         height: 100px;
-        margin-right: 5px;
     }
 }
 
@@ -608,9 +627,11 @@
                <div class="label">Tx Broadcasted</div>
            </div>
            <div class="transaction-arrow"></div>
+           <div class="transaction-pool-wrapper">
            <div class="transaction-pool" id="transaction-pool">
                <div class="bottom-row-popup">Signed transactions wait in the mempool to be included in a block. High traffic leads to congestion.</div>
                <div class="label">Mempool</div>
+            </div>
            </div>
            <div class="transaction-arrow"></div>
            <div class="transaction-symbol">
